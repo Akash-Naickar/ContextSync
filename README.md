@@ -32,7 +32,11 @@ graph LR
 
 ## Preview
 
-![Image](https://github.com/user-attachments/assets/6a42d71c-4b87-4cca-a16b-f102f8e1d4d5)
+https://github.com/user-attachments/assets/1a8b9b99-b190-49e3-8f47-3fefc5b9abe7
+
+
+
+
 
 
 ## 📦 Installation & Setup
