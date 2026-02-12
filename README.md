@@ -1,6 +1,6 @@
 # 🧠 ContextSync: Institutional Memory as a Service
 
-![Status](https://img.shields.io/badge/Status-Prototype-orange)
+![Status](https://img.shields.io/badge/Status-Prototype-blue)
 ![Python](https://img.shields.io/badge/Backend-FastAPI-blue?logo=fastapi)
 ![Extension](https://img.shields.io/badge/VS_Code-TypeScript-blue?logo=visualstudiocode)
 ![AI](https://img.shields.io/badge/AI-Gemini_3_Pro-purple?logo=google)
