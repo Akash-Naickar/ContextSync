@@ -34,8 +34,7 @@ graph LR
 
 <img width="1850" height="951" alt="Screenshot 2026-02-13 002400" src="https://github.com/user-attachments/assets/0872023f-a042-438e-b336-74c252c79e08" />
 
-<a src=https://excalidraw.com/#json=tDGUWnc8xLdYVLTPOpl-8,nbXH2PbfV91m5paLQ4lBiQ>Excalidraw</a>
-
+<a href="https://excalidraw.com/#json=tDGUWnc8xLdYVLTPOpl-8,nbXH2PbfV91m5paLQ4lBiQ">Excalidraw</a>
 ## Preview
 
 https://github.com/user-attachments/assets/1a8b9b99-b190-49e3-8f47-3fefc5b9abe7
