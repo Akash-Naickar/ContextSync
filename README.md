@@ -30,6 +30,11 @@ graph LR
     LLM -->|Insight| IDE
 ```
 
+## Preview
+
+![Image](https://github.com/user-attachments/assets/6a42d71c-4b87-4cca-a16b-f102f8e1d4d5)
+
+
 ## 📦 Installation & Setup
 
 ### 1. Backend Service
