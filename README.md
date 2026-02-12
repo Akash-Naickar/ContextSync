@@ -3,7 +3,7 @@
 ![Status](https://img.shields.io/badge/Status-Prototype-orange)
 ![Python](https://img.shields.io/badge/Backend-FastAPI-blue?logo=fastapi)
 ![Extension](https://img.shields.io/badge/VS_Code-TypeScript-blue?logo=visualstudiocode)
-![AI](https://img.shields.io/badge/AI-Gemini_1.5_Pro-purple?logo=google)
+![AI](https://img.shields.io/badge/AI-Gemini_3_Pro-purple?logo=google)
 
 > **Stop Coding in the Dark.** ContextSync bridges the gap between your IDE and your team's conversations, preventing "invisible bugs" by surfacing critical historical context.
 
@@ -26,7 +26,7 @@ You didn't see that message. **ContextSync did.**
 graph LR
     IDE[VS Code] -->|Code Snippet| API[Backend API]
     API -->|Vector Search| DB[(ChromaDB)]
-    DB -->|Retrieved Context| LLM[Gemini 1.5 Pro]
+    DB -->|Retrieved Context| LLM[Gemini 3 Pro]
     LLM -->|Insight| IDE
 ```
 
@@ -67,8 +67,4 @@ Contributions are welcome! Please fork the repository and open a pull request.
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
 
-## 📄 License
-Distributed under the MIT License. See `LICENSE` for more information.
-
 ---
-*Built with ❤️ by [Your Name]*
