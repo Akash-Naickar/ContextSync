@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as http from 'http';
+import * as https from 'https';
 
 export class ContextSidebarProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'contextSyncView';
@@ -66,9 +67,31 @@ export class ContextSidebarProvider implements vscode.WebviewViewProvider {
             line_numbers: lineNumbers
         });
 
+
+        const config = vscode.workspace.getConfiguration('contextsync');
+        const apiBaseUrl = config.get<string>('apiBaseUrl') || 'http://127.0.0.1:8000';
+
+        // Parse the URL to get hostname and port
+        // Note: This simple parsing assumes http/https and might need a more robust URL parser for edge cases
+        // but keeping it simple for now to match existing http module usage.
+        // Actually, using the full URL with fetch or axios would be better, but sticking to http module:
+
+        let hostname = '127.0.0.1';
+        let port = 8000;
+        let protocol = 'http:';
+
+        try {
+            const url = new URL(apiBaseUrl);
+            hostname = url.hostname;
+            port = parseInt(url.port) || (url.protocol === 'https:' ? 443 : 80);
+            protocol = url.protocol;
+        } catch (e) {
+            console.error("Invalid API URL", e);
+        }
+
         const options = {
-            hostname: '127.0.0.1',
-            port: 8000,
+            hostname: hostname,
+            port: port,
             path: '/explain',
             method: 'POST',
             headers: {
@@ -77,7 +100,8 @@ export class ContextSidebarProvider implements vscode.WebviewViewProvider {
             }
         };
 
-        const req = http.request(options, (res) => {
+        const requestModule = protocol === 'https:' ? https : http;
+        const req = requestModule.request(options, (res) => {
             let data = '';
             res.on('data', (chunk) => { data += chunk; });
             res.on('end', () => {
@@ -109,9 +133,24 @@ export class ContextSidebarProvider implements vscode.WebviewViewProvider {
             line_numbers: lineNumbers
         });
 
+
+        const config = vscode.workspace.getConfiguration('contextsync');
+        const apiBaseUrl = config.get<string>('apiBaseUrl') || 'http://127.0.0.1:8000';
+
+        let hostname = '127.0.0.1';
+        let port = 8000;
+        let protocol = 'http:';
+
+        try {
+            const url = new URL(apiBaseUrl);
+            hostname = url.hostname;
+            port = parseInt(url.port) || (url.protocol === 'https:' ? 443 : 80);
+            protocol = url.protocol;
+        } catch (e) { }
+
         const options = {
-            hostname: '127.0.0.1',
-            port: 8000,
+            hostname: hostname,
+            port: port,
             path: '/context/retrieve',
             method: 'POST',
             headers: {
@@ -120,7 +159,8 @@ export class ContextSidebarProvider implements vscode.WebviewViewProvider {
             }
         };
 
-        const req = http.request(options, (res) => {
+        const requestModule = protocol === 'https:' ? https : http;
+        const req = requestModule.request(options, (res) => {
             let data = '';
             res.on('data', (chunk) => { data += chunk; });
             res.on('end', () => {
@@ -146,14 +186,29 @@ export class ContextSidebarProvider implements vscode.WebviewViewProvider {
     }
 
     public triggerSync() {
+        const config = vscode.workspace.getConfiguration('contextsync');
+        const apiBaseUrl = config.get<string>('apiBaseUrl') || 'http://127.0.0.1:8000';
+
+        let hostname = '127.0.0.1';
+        let port = 8000;
+        let protocol = 'http:';
+
+        try {
+            const url = new URL(apiBaseUrl);
+            hostname = url.hostname;
+            port = parseInt(url.port) || (url.protocol === 'https:' ? 443 : 80);
+            protocol = url.protocol;
+        } catch (e) { }
+
         const options = {
-            hostname: '127.0.0.1',
-            port: 8000,
+            hostname: hostname,
+            port: port,
             path: '/context/sync',
             method: 'POST'
         };
 
-        const req = http.request(options, (res) => {
+        const requestModule = protocol === 'https:' ? https : http;
+        const req = requestModule.request(options, (res) => {
             let data = '';
             res.on('data', (chunk) => { data += chunk; });
             res.on('end', () => {

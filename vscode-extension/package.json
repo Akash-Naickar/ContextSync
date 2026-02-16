@@ -3,17 +3,14 @@
     "displayName": "ContextSync",
     "description": "Explains the human intent behind code using RAG.",
     "version": "0.0.1",
+    "icon": "resources/icon.svg",
     "engines": {
         "vscode": "^1.80.0"
     },
     "categories": [
         "Other"
     ],
-    "activationEvents": [
-        "onCommand:contextsync.explain",
-        "onCommand:contextsync.showContext",
-        "onView:contextSyncView"
-    ],
+    "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
@@ -43,6 +40,16 @@
                     "name": "Context Explanation"
                 }
             ]
+        },
+        "configuration": {
+            "title": "ContextSync",
+            "properties": {
+                "contextsync.apiBaseUrl": {
+                    "type": "string",
+                    "default": "http://127.0.0.1:8000",
+                    "description": "URL of the ContextSync Backend API"
+                }
+            }
         }
     },
     "scripts": {
