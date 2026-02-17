@@ -8,3 +8,5 @@ python-dotenv
 tiktoken
 pydantic
 langchain-chroma
+slack_sdk
+jira
