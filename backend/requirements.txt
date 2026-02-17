@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+langchain
+langchain-community
+langchain-google-genai
+chromadb
+python-dotenv
+tiktoken
+pydantic
+langchain-chroma
+slack_sdk
+jira
+atlassian-python-api
