@@ -24,3 +24,11 @@ class StatsObject(BaseModel):
     slack_count: int
     jira_count: int
     open_jira_count: int
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[List[dict]] = []
+    context: Optional[str] = None
+
+class ChatResponse(BaseModel):
+    reply: str

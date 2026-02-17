@@ -50,7 +50,7 @@ class RAGService:
         unique_identifiers = list(set(identifiers))
         return " ".join(unique_identifiers[:10]) # Limit to top 10 to avoid noise
 
-    def retrieve(self, query: str, k: int = 5):
+    def retrieve(self, query: str, k: int = 15):
         """Hybrid-ish retrieval: simply uses the vector store for now."""
         # In a real hybrid setup, we might combine BM25 with Vector search.
         # For this MVP, we rely on the semantic power of the embedding model,
@@ -105,16 +105,15 @@ class RAGService:
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
-            ("user", "Context:\n{context}\n\nCode ({file_path}:{line_numbers}):\n```python\n{code_snippet}\n```")
+            ("user", "{user_input}")
         ])
+
+        user_input_str = f"Context:\n{context_str}\n\nCode ({file_path}:{line_numbers}):\n```python\n{code_snippet}\n```"
 
         # 4. Generate
         chain = prompt | self.llm | StrOutputParser()
         response = await chain.ainvoke({
-            "context": context_str,
-            "file_path": file_path,
-            "line_numbers": line_numbers,
-            "code_snippet": code_snippet
+            "user_input": user_input_str
         })
         return response
 
@@ -154,6 +153,53 @@ class RAGService:
             objects.append(obj)
         return objects
 
+    async def chat_with_gemini(self, message: str, history: List[dict] = [], context: str = None) -> str:
+        """Chats with Gemini, optionally using provided context."""
+        if not self.llm:
+            return "Context Engine is not initialized."
+
+        # Construct Prompt
+        system_prompt = """You are ContextSync, an intelligent coding assistant integrated into VS Code.
+        You have access to context from Slack, Jira, Confluence, and Notion.
+        
+        Your goal is to help the developer understand the codebase, debug issues, and navigate the project.
+        
+        If 'Current Context' is provided below, use it to answer the user's question if relevant.
+        If the user asks a general coding question, answer it directly.
+        Be concise, helpful, and developer-focused.
+        """
+        
+        messages = [("system", system_prompt)]
+        
+        # Add history
+        for msg in history:
+            role = "user" if msg.get("role") == "user" else "assistant"
+            content = msg.get("content", "")
+            # Escape curly braces for LangChain PromptTemplate
+            content = content.replace("{", "{{").replace("}", "}}")
+            messages.append((role, content))
+            
+        # Add current context if available
+        # Fix: We want to treat the user's message as a VARIABLE, not part of the template structure.
+        # This prevents curly braces in code from breaking the PromptTemplate.
+        
+        prompt_template_str = ""
+        user_content_str = message
+        
+        if context:
+            user_content_str = f"Current Context:\n{context}\n\nUser Question:\n{message}"
+            
+        messages.append(("user", "{user_input}"))
+        
+        prompt = ChatPromptTemplate.from_messages(messages)
+        
+        chain = prompt | self.llm | StrOutputParser()
+        
+        response = await chain.ainvoke({
+            "user_input": user_content_str
+        })
+        return response
+
     def add_documents(self, documents: List[Document]):
         """Adds new documents to the vector store."""
         if not self.db:
@@ -167,10 +213,31 @@ class RAGService:
         if splits:
             import hashlib
             # Generate deterministic IDs based on content hash to prevent duplicates
-            ids = [hashlib.md5(doc.page_content.encode()).hexdigest() for doc in splits]
+            full_ids = [hashlib.md5(doc.page_content.encode()).hexdigest() for doc in splits]
             
-            print(f"Adding/Updating {len(splits)} chunks in Vector Store...")
-            self.db.add_documents(splits, ids=ids)
+            # Deduplicate within this batch
+            unique_ids = []
+            unique_splits = []
+            seen_ids = set()
+            for i, doc_id in enumerate(full_ids):
+                if doc_id not in seen_ids:
+                    unique_ids.append(doc_id)
+                    unique_splits.append(splits[i])
+                    seen_ids.add(doc_id)
+            
+            print(f"Adding/Updating {len(unique_splits)} unique chunks in Vector Store...")
+            try:
+                self.db.add_documents(unique_splits, ids=unique_ids)
+            except Exception as e:
+                if "Duplicate" in str(e) or "already exists" in str(e).lower():
+                    print("Some documents already exist. Updating by deletion/insertion...")
+                    try:
+                        self.db.delete(ids=unique_ids)
+                        self.db.add_documents(unique_splits, ids=unique_ids)
+                    except Exception as delete_error:
+                        print(f"Error during upsert (delete+add): {delete_error}")
+                else:
+                    print(f"Error adding documents: {e}")
 
     async def get_context_stats_batch(self, snippets: List[str]) -> List[dict]:
         """Retrieves stats for a list of code snippets."""
@@ -182,7 +249,7 @@ class RAGService:
             # We use a smaller k for stats to be faster/more focused
             keywords = self._extract_keywords(snippet)
             search_query = f"{snippet}\nKeywords: {keywords}"
-            docs = self.retrieve(search_query, k=5)
+            docs = self.retrieve(search_query, k=10)
             
             slack_count = 0
             jira_count = 0

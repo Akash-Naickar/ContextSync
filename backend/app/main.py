@@ -2,7 +2,7 @@ import os
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
-from app.models import ExplainRequest, ExplainResponse, ContextObject, StatsRequest, StatsObject
+from app.models import ExplainRequest, ExplainResponse, ContextObject, StatsRequest, StatsObject, ChatRequest, ChatResponse
 from typing import List
 from app.services.rag import RAGService
 from app.services.integrations import IntegrationService
@@ -124,3 +124,17 @@ async def context_stats(request: StatsRequest):
     
     stats_list = await rag_service.get_context_stats_batch(request.snippets)
     return [StatsObject(**s) for s in stats_list]
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    """Chat with Gemini 3 Pro."""
+    if not rag_service:
+        raise HTTPException(status_code=503, detail="RAG Service not initialized")
+    
+    reply = await rag_service.chat_with_gemini(
+        message=request.message,
+        history=request.history,
+        context=request.context
+    )
+    
+    return ChatResponse(reply=reply)

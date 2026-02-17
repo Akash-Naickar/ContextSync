@@ -42,17 +42,17 @@ def process_confluence_data(pages):
     """Converts Confluence pages into documents with metadata."""
     documents = []
     for page in pages:
+        body = page.get('body', '') or ''
         # Strip HTML tags likely (simple approach) or keep as raw text
-        # For now, simplistic stripping
-        clean_body = re.sub('<[^<]+?>', '', page['body'])
+        clean_body = re.sub('<[^<]+?>', '', body)
         
-        content = f"Page: {page['title']} | Last Modified: {page['last_modified']}\nContent: {clean_body}"
+        content = f"Page: {page.get('title', 'Untitled')} | Last Modified: {page.get('last_modified', 'N/A')}\nContent: {clean_body}"
         meta = {
             "source": "confluence",
-            "id": page['id'],
-            "title": page['title'],
-            "url": page['url'],
-            "version": page['version']
+            "id": page.get('id'),
+            "title": page.get('title'),
+            "url": page.get('url'),
+            "version": page.get('version')
         }
         documents.append(Document(page_content=content, metadata=meta))
     return documents
@@ -61,13 +61,14 @@ def process_notion_data(pages):
     """Converts Notion pages into documents."""
     documents = []
     for page in pages:
-        content = f"Title: {page['title']}\nURL: {page['url']}\nLast Edited: {page['last_edited']}\n\nContent:\n{page['content']}"
+        content_text = page.get('content', '') or ''
+        content = f"Title: {page.get('title', 'Untitled')}\nURL: {page.get('url', 'N/A')}\nLast Edited: {page.get('last_edited', 'N/A')}\n\nContent:\n{content_text}"
         meta = {
             "source": "notion",
-            "page_id": page['id'],
-            "title": page['title'],
-            "url": page['url'],
-            "last_edited": page['last_edited']
+            "page_id": page.get('id'),
+            "title": page.get('title'),
+            "url": page.get('url'),
+            "last_edited": page.get('last_edited')
         }
         documents.append(Document(page_content=content, metadata=meta))
     return documents
