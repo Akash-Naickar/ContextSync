@@ -24,6 +24,7 @@ This guide explains how to deploy the Python FastAPI backend to a cloud provider
         *   `JIRA_API_TOKEN`: [Your Token]
         *   `JIRA_EMAIL`: [Your Email]
         *   `JIRA_DOMAIN`: [Your Domain]
+        *   `PYTHON_VERSION`: `3.11.9` (Required to avoid compatibility issues)
 
 3.  **Deploy**:
     *   Click "Create Web Service".

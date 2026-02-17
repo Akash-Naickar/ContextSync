@@ -12,8 +12,7 @@ load_dotenv()
 
 rag_service = None
 integration_service = None
-
-# Config from .env or hardcoded for now (should move to env)
+# Config hardcoded for now
 SLACK_CHANNEL_ID = "C0AECA17DM0"
 JIRA_JQL = "resolution = Unresolved ORDER BY created DESC"
 
@@ -70,11 +69,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ContextSync Backend", lifespan=lifespan)
 
-@app.get("/")
-async def root():
+@app.get("/")   # GET http request
+async def root():  
     return {"message": "ContextSync Context Engine is Running"}
 
-@app.post("/explain", response_model=ExplainResponse)
+@app.post("/explain", response_model=ExplainResponse)  # POST http request
 async def explain_code(request: ExplainRequest):
     if not rag_service:
         raise HTTPException(status_code=503, detail="RAG Service not initialized")
@@ -87,7 +86,7 @@ async def explain_code(request: ExplainRequest):
     
     return ExplainResponse(markdown=markdown_response)
 
-@app.post("/context/retrieve", response_model=List[ContextObject])
+@app.post("/context/retrieve", response_model=List[ContextObject])  # POST http request
 async def retrieve_context(request: ExplainRequest):
     """Returns structured context objects for the IDE."""
     if not rag_service:
