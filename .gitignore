@@ -5,7 +5,7 @@ __pycache__/
 venv/
 .env
 .venv/
-backend/chroma_db/  # Don't commit the vector DB
+backend/chroma_db/
 
 # Node.js
 node_modules/
