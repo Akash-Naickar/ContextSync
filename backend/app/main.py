@@ -1,3 +1,4 @@
+import os
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
@@ -5,7 +6,7 @@ from app.models import ExplainRequest, ExplainResponse, ContextObject, StatsRequ
 from typing import List
 from app.services.rag import RAGService
 from app.services.integrations import IntegrationService
-from app.services.data_processing import process_slack_data, process_jira_data, process_confluence_data
+from app.services.data_processing import process_slack_data, process_jira_data, process_confluence_data, process_notion_data
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,6 +17,7 @@ integration_service = None
 SLACK_CHANNEL_ID = "C0AECA17DM0"
 JIRA_JQL = "resolution = Unresolved ORDER BY created DESC"
 CONFLUENCE_CQL = 'type=page AND title ~ "Payment" ORDER BY lastmodified DESC'
+NOTION_QUERY = os.environ.get("NOTION_SEARCH_QUERY", "")
 
 async def sync_data():
     """Fetches and ingests real-time data."""
@@ -29,6 +31,7 @@ async def sync_data():
         slack_msgs = integration_service.fetch_channel_history(SLACK_CHANNEL_ID, limit=10)
         jira_tickets = integration_service.search_jira_tickets(JIRA_JQL, limit=10)
         confluence_pages = integration_service.search_confluence_pages(CONFLUENCE_CQL, limit=5)
+        notion_pages = integration_service.search_notion_pages(NOTION_QUERY, limit=5)
         
         # Process & Ingest
         new_docs = []
@@ -38,6 +41,8 @@ async def sync_data():
             new_docs.extend(process_jira_data(jira_tickets))
         if confluence_pages:
             new_docs.extend(process_confluence_data(confluence_pages))
+        if notion_pages:
+            new_docs.extend(process_notion_data(notion_pages))
         
         if new_docs:
             rag_service.add_documents(new_docs)

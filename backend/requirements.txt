@@ -11,3 +11,4 @@ langchain-chroma
 slack_sdk
 jira
 atlassian-python-api
+notion-client

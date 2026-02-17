@@ -56,3 +56,18 @@ def process_confluence_data(pages):
         }
         documents.append(Document(page_content=content, metadata=meta))
     return documents
+
+def process_notion_data(pages):
+    """Converts Notion pages into documents."""
+    documents = []
+    for page in pages:
+        content = f"Title: {page['title']}\nURL: {page['url']}\nLast Edited: {page['last_edited']}\n\nContent:\n{page['content']}"
+        meta = {
+            "source": "notion",
+            "page_id": page['id'],
+            "title": page['title'],
+            "url": page['url'],
+            "last_edited": page['last_edited']
+        }
+        documents.append(Document(page_content=content, metadata=meta))
+    return documents

@@ -120,9 +120,10 @@ class RAGService:
 
     async def _summarize_doc(self, content: str) -> str:
         """Summarizes a single document using the LLM."""
-        prompt_text = f"Summarize this context in one concise sentence for a developer:\n\n{content}"
-        summary = await self.llm.ainvoke(prompt_text)
-        return f"**Summary**: {summary.content}\n\n**Raw Source**:\n{content}"
+        # prompt_text = f"Summarize this context in one concise sentence for a developer:\n\n{content}"
+        # summary = await self.llm.ainvoke(prompt_text)
+        # return f"**Summary**: {summary.content}\n\n**Raw Source**:\n{content}"
+        return f"**Snippet**: {content[:300]}...\n\n**Raw Source**:\n{content}"
 
     async def get_context_objects(self, code_snippet: str) -> List[ContextObject]:
         """Retrieves structured context objects with LLM summaries."""

@@ -3,6 +3,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from jira import JIRA
 from atlassian import Confluence
+from notion_client import Client
 
 class IntegrationService:
     def __init__(self):
@@ -45,6 +46,14 @@ class IntegrationService:
         else:
             self.confluence = None
             print("Warning: Confluence credentials missing.")
+
+        # Notion Initialization
+        self.notion_token = os.environ.get("NOTION_API_KEY")
+        if self.notion_token:
+            self.notion = Client(auth=self.notion_token)
+        else:
+            self.notion = None
+            print("Warning: Notion credentials missing.")
 
     def get_slack_thread(self, channel_id: str, thread_ts: str):
         """Fetches the last 5 messages from a Slack thread."""
@@ -146,4 +155,75 @@ class IntegrationService:
             return pages
         except Exception as e:
             print(f"Confluence API Error: {e}")
+            return []
+
+    def search_notion_pages(self, query: str = "", limit=10):
+        """Searches for Notion pages."""
+        if not self.notion:
+            return []
+        try:
+            # Search for pages/databases
+            response = self.notion.search(query=query, page_size=limit)
+            results = response.get("results", [])
+            
+            pages = []
+            for page in results:
+                try:
+                    # We only want pages, not databases for simplicity, or handle both
+                    if page["object"] == "page":
+                        # Get title
+                        title = "Untitled"
+                        props = page.get("properties", {})
+                        # Iterate to find the 'title' property type
+                        for key, val in props.items():
+                            if val["type"] == "title" and val["title"]:
+                                title = val["title"][0]["plain_text"]
+                                break
+                        
+                        # Get content (blocks)
+                        # Note: Fetching blocks for each page is expensive, so we limit to top 100 blocks
+                        blocks = self.notion.blocks.children.list(block_id=page["id"], page_size=100)
+                        
+                        content_text = ""
+                        for block in blocks.get("results", []):
+                            btype = block["type"]
+                            text_content = ""
+                            
+                            # Handle different block types
+                            if "rich_text" in block.get(btype, {}):
+                                text_list = block[btype]["rich_text"]
+                                if text_list:
+                                    text_content = "".join([t["plain_text"] for t in text_list])
+
+                            if btype == "paragraph":
+                                content_text += text_content + "\n"
+                            elif btype in ["heading_1", "heading_2", "heading_3"]:
+                                content_text += f"\n# {text_content}\n"
+                            elif btype == "bulleted_list_item":
+                                content_text += f"- {text_content}\n"
+                            elif btype == "numbered_list_item":
+                                content_text += f"1. {text_content}\n"
+                            elif btype == "code":
+                                # Code blocks store text in 'rich_text' inside 'code' object, plus language
+                                code_lang = block[btype].get("language", "text")
+                                content_text += f"\n```{code_lang}\n{text_content}\n```\n"
+                            elif btype == "to_do":
+                                checked = "[x]" if block[btype].get("checked") else "[ ]"
+                                content_text += f"{checked} {text_content}\n"
+                        
+                        pages.append({
+                            "id": page["id"],
+                            "title": title,
+                            "url": page["url"],
+                            "content": content_text,
+                            "last_edited": page["last_edited_time"]
+                        })
+                except Exception as e:
+                    print(f"Error processing Notion page {page.get('id')}: {e}")
+                    continue
+
+            return pages
+
+        except Exception as e:
+            print(f"Notion API Error: {e}")
             return []
