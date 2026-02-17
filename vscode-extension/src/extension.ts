@@ -1,14 +1,25 @@
 import * as vscode from 'vscode';
 import { ContextSidebarProvider } from './sidebar';
+import { ContextCodeLensProvider } from './codelens';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('ContextSync extension is activating...');
 
     try {
+        const outputChannel = vscode.window.createOutputChannel("ContextSync");
+        outputChannel.appendLine("ContextSync: Extension activating...");
+
         const sidebarProvider = new ContextSidebarProvider(context.extensionUri);
+        const codeLensProvider = new ContextCodeLensProvider(outputChannel);
+
+        context.subscriptions.push(outputChannel);
 
         context.subscriptions.push(
             vscode.window.registerWebviewViewProvider("contextSyncView", sidebarProvider)
+        );
+
+        context.subscriptions.push(
+            vscode.languages.registerCodeLensProvider({ scheme: 'file' }, codeLensProvider)
         );
 
         context.subscriptions.push(

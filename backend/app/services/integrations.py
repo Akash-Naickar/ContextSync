@@ -1,4 +1,3 @@
-
 import os
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -60,6 +59,7 @@ class IntegrationService:
         except Exception as e:
             print(f"Jira API Error: {e}")
             return None
+            
     def list_channels(self, limit=20):
         """Lists public channels to help user find IDs."""
         try:

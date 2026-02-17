@@ -16,3 +16,11 @@ class ContextObject(BaseModel):
     content_summary: str
     relevance_score: float = 0.0
     related_code_files: List[str] = []
+
+class StatsRequest(BaseModel):
+    snippets: List[str]
+
+class StatsObject(BaseModel):
+    slack_count: int
+    jira_count: int
+    open_jira_count: int

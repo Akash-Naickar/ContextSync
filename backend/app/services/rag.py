@@ -166,3 +166,38 @@ class RAGService:
             print(f"Adding/Updating {len(splits)} chunks in Vector Store...")
             self.db.add_documents(splits, ids=ids)
 
+    async def get_context_stats_batch(self, snippets: List[str]) -> List[dict]:
+        """Retrieves stats for a list of code snippets."""
+        if not self.db:
+            return [{"slack_count": 0, "jira_count": 0, "open_jira_count": 0} for _ in snippets]
+
+        stats_results = []
+        for snippet in snippets:
+            # We use a smaller k for stats to be faster/more focused
+            keywords = self._extract_keywords(snippet)
+            search_query = f"{snippet}\nKeywords: {keywords}"
+            docs = self.retrieve(search_query, k=5)
+            
+            slack_count = 0
+            jira_count = 0
+            open_jira_count = 0
+            
+            for doc in docs:
+                source = doc.metadata.get("source")
+                if source == "slack":
+                    slack_count += 1
+                elif source == "jira":
+                    jira_count += 1
+                    status = doc.metadata.get("status", "").lower()
+                    # Count as open if status is valid and NOT done/closed
+                    if status and status not in ["done", "closed", "resolved"]:
+                        open_jira_count += 1
+            
+            stats_results.append({
+                "slack_count": slack_count,
+                "jira_count": jira_count,
+                "open_jira_count": open_jira_count
+            })
+            
+        return stats_results
+

@@ -1,7 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
-from app.models import ExplainRequest, ExplainResponse, ContextObject
+from app.models import ExplainRequest, ExplainResponse, ContextObject, StatsRequest, StatsObject
 from typing import List
 from app.services.rag import RAGService
 from app.services.integrations import IntegrationService
@@ -106,4 +106,12 @@ async def ingest_webhook(request: Request):
 async def manual_sync():
     """Manually triggers the data sync logic."""
     return await sync_data()
-    return {"status": "accepted"}
+
+@app.post("/context/stats", response_model=List[StatsObject])
+async def context_stats(request: StatsRequest):
+    """Returns context stats for a list of code snippets."""
+    if not rag_service:
+        raise HTTPException(status_code=503, detail="RAG Service not initialized")
+    
+    stats_list = await rag_service.get_context_stats_batch(request.snippets)
+    return [StatsObject(**s) for s in stats_list]
